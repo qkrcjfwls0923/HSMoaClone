@@ -63,6 +63,13 @@ class SetupView(View):
             org_price=data["org_price"])
         item.save()
 
+class CategoryView(View):
+    def get(self, request):
+        categories = Category.objects.all().values()
+        return JsonResponse({
+            "categories": list(categories)
+        })
+
 class ItemView(View):
     def get(self, request, date, time, mall, category, orderby):
         dt=datetime.strptime(date, "%Y%m%d")
