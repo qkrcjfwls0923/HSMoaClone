@@ -1,5 +1,7 @@
-from datetime import datetime
+import json
+from datetime import datetime, timedelta
 
+from django.db.models import Q
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.generic import View
@@ -60,3 +62,35 @@ class SetupView(View):
             end_time=end_time, category=cate, url=data["url"], img=data["img"], price=data["price"],
             org_price=data["org_price"])
         item.save()
+
+class ItemView(View):
+    def get(self, request, date, time, mall, category, orderby):
+        dt=datetime.strptime(date, "%Y%m%d")
+        offset=len(time)-2
+        hour=int(time[:offset]) if time[:offset] else 0
+        minute=int(time[offset:]) if time[offset:] else 0
+
+        start_time=datetime(year=dt.year, month=dt.month, day=dt.day, hour=hour, minute=minute)
+        start_time-=timedelta(seconds=1)
+        first_item=Item.objects.filter(Q(start_time__gte=start_time)).first()
+        if orderby.upper() == "ASC":
+            end_time=first_item.start_time+timedelta(hours=4)
+
+            items=Item.objects.filter(Q(start_time__gte=start_time), Q(start_time__lte=end_time))
+        else:
+            end_time=start_time
+            start_time=first_item.start_time-timedelta(hours=4)
+
+            items=Item.objects.filter(Q(start_time__gte=start_time), Q(start_time__lte=end_time))
+
+        if mall.upper() != "ALL":
+            items=items.filter(mall__name=mall)
+        
+        if category.upper() != "ALL":
+            items=items.filter(category__name=category)
+
+        items=items.values(
+            'name', 'mall__name', 'mall__label', 'category__name',
+            'start_time', 'end_time', 'img', 'url', 'price', 'org_price',
+        )
+        return JsonResponse({'items':list(items)})
