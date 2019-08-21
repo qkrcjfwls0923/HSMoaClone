@@ -12,7 +12,7 @@ from sklearn.externals import joblib
 from .models import ShoppingMall, Category, Item
 
 # Create your views here.
-class SetupView(View):
+class SetupApi(View):
     def get(self, request):
         datas = joblib.load("timeline_goods_dump.dat")
         if len(datas) is not 0:
@@ -63,21 +63,21 @@ class SetupView(View):
             org_price=data["org_price"])
         item.save()
 
-class ShoppingMallView(View):
+class ShoppingMallApi(View):
     def get(self, request):
         malls = ShoppingMall.objects.all().values()
         return JsonResponse({
             "ShoppingMalls": list(malls)
         })
 
-class CategoryView(View):
+class CategoryApi(View):
     def get(self, request):
         categories = Category.objects.all().values()
         return JsonResponse({
             "categories": list(categories)
         })
 
-class ItemView(View):
+class ItemApi(View):
     def get(self, request, date, time, mall, category, orderby):
         dt=datetime.strptime(date, "%Y%m%d")
         offset=len(time)-2
