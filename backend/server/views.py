@@ -63,6 +63,13 @@ class SetupView(View):
             org_price=data["org_price"])
         item.save()
 
+class ShoppingMallView(View):
+    def get(self, request):
+        malls = ShoppingMall.objects.all().values()
+        return JsonResponse({
+            "ShoppingMalls": list(malls)
+        })
+
 class CategoryView(View):
     def get(self, request):
         categories = Category.objects.all().values()
